@@ -1,0 +1,46 @@
+id: beefi_param_logger
+label: "Beefi Parameter Logger"
+category: '[beefi]'
+
+templates:
+  imports: import beefi
+  make: beefi.param_logger(${dir}, ${log_period}, ${output_power}, ${period}, ${duty_cycle}, ${channels})
+  callbacks:
+   - 'update(${output_power}, ${period}, ${duty_cycle})'
+
+parameters:
+- id: dir
+  label: "Log Directory"
+  dtype: dir_select
+- id: log_period
+  label: "Logging Period (s)"
+  dtype: int
+- id: output_power
+  label: "Output Power (dBm, per Channel)"
+  dtype: int
+- id: period
+  label: "PWM Period"
+  dtype: int
+- id: duty_cycle
+  label: "PWM Duty Cycle"
+  dtype: int
+- id: channels
+  label: "Channels"
+  dtype: int
+  default: 1
+
+asserts:
+ - ${channels > 0}
+ - ${log_period > 1}
+ - ${period > 0}
+ - ${0 <= duty_cycle and duty_cycle <= 100}
+
+inputs:
+- domain: stream
+  dtype: complex
+  multiplicity: ${channels}
+  optional: true
+
+outputs: []
+
+file_format: 1

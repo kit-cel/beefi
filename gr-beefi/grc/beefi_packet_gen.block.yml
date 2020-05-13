@@ -1,0 +1,22 @@
+id: beefi_packet_gen
+label: "Packet Generator"
+category: '[beefi]'
+
+templates:
+  imports: import beefi
+  make: 'beefi.packet_gen(${directory})'
+
+parameters:
+- id: directory
+  label: Directory
+  dtype: dir_select
+
+inputs:
+- label: In
+  dtype: byte
+  
+outputs:
+- label: Out
+  dtype: complex
+
+file_format: 1
