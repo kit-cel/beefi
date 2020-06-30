@@ -1,0 +1,364 @@
+\documentclass[a4paper,twoside]{scrreprt}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage[]{tikz}
+\usepackage[]{pgfplots}
+\usepgfplotslibrary{polar}
+\usepackage[locale=DE]{siunitx}
+\DeclareSIUnit{\dbm}{dBm}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{glossaries}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\title{Benutzung des kontrollierbaren WLAN-Bestrahlungssystems \textsc{Beefi}}
+\subject{Nachrichtentechnischer Bericht}
+\author{M.Sc. Marcus Müller}
+\publishers{Institut für Nachrichtentechnik (CEL)}
+\titlehead{\raggedleft\includegraphics[height=4em]{cel.pdf}} 
+\newacronym{cel}{CEL}{Institut für Nachrichtentechnik}
+\newacronym{sdr}{SDR}{Software Defined Radio}
+\newacronym{eirp}{EIRP}{Equivalent Isotropic Radiated Power, Äquivalente
+  isotrope abgestrahlte Leistung}
+\newacronym{wlan}{WLAN}{Wireless LAN}
+\makeglossaries
+\newcommand{\lowf}{\SI{2.450}{\giga\hertz}}
+\newcommand{\highf}{\SI{5.805}{\giga\hertz}}
+\begin{document}
+\maketitle
+\chapter{Systembeschreibung}
+
+Beim Beefi-Aufbau handelt es sich um ein System zur Bereitstellung einer
+kontrollierten Strahlungsleistung und damit auch Bestrahlungsintensität. Hierbei
+werden Wellenformen eingesetzt, die \gls{wlan}-Übertragungen entsprechen.
+
+Technisch herrscht kein Unterschied zwischen den von einem \gls{wlan}-Gerät
+ausgesandten Kommunikationssignalen und den synthetisierten Wellenformen: Es
+handelt sich um gültige \gls{wlan}-Pakete nach dem IEEE802.11a-Standard. Der
+technische Unterschied besteht darin, dass der Sender nicht versucht, eine
+Kommunikationsstrecke zu betreiben, und hierbei Leistung, Paketdichte und
+eventuell Strahlrichtung während des Betriebs dynamisch anzupassen.
+
+Stattdessen setzt das Beefi-System \gls{sdr}-Technologie ein um eine
+einstellbare, zuverlässige, quantisierbare und protokollierte Bestrahlung
+sicherzustellen, wie sie im Sinne reproduzierbarer Wissenschaft notwendig ist.
+
+Hierfür sind drei Parameter einstellbar:
+
+\begin{enumerate}
+\item Die Sendeverstärkung über einen Bereich von $1:10^9$
+\item Die Auslastung mit WLAN-Paketen
+\item Die Dauer der Periode, in die die Zeit eingeteilt wird.
+\end{enumerate}
+
+Der zentrale Laptop im System dient dabei der Ansteuerung der Sendegeräte und
+der Visualisierung der aktuellen Sendeeinstellung. Außerdem protokolliert er,
+wann mit welcher Parametrisierung bestrahlt wurde, und bietet mit seiner
+Batterie eine Robustheit gegen kurzfristige Unterbrechungen der
+Stromversorgung.
+
+\section{Richtdiagramme}
+
+\subsection{Mathematisch-Physikalische Grundlagen}
+\autoref{fig:richt} stellt die Richtdiagramme des Aufbaus bei \lowf{} und \highf{}
+dar. Hierbei wird die Flächenleistungsdichte in Bezug auf die Hauptrichtung in
+Dezibel angeben. Bei Leistungsgrößen ist das Dezibel definiert als
+
+\begin{align}
+x_{\text{dB}}&=10\log_{10}\frac{x_{\text{[linear]}}}{x_{\text{Referenz}}}\text.
+\end{align}
+
+Ein Eintrag von \SI{-30}{\decibel} bedeutet also, dass bezogen auf die
+Hauptstrahlrichtung (\SI{0}{\degree}) nur $10^{-3}$, ein Tausendstel, an
+Leistung auf eine gleich große Fläche fällt.
+
+Im Folgenden wird die Einheit \si{\decibel\milli{}} verwandt, das ist
+\emph{Dezibel bezogen auf ein Milliwatt}; \SI{20}{\decibel\milli{}} entsprechen
+also $\SI{1e2}{\milli\watt}=\SI{100}{\milli\watt}$.
+
+Die Werte wurden mittels eines kalibrierten Spektrumsanalysator (Rohde\&Schwarz
+FSQ 8) ermittelt. Hierbei wurde eine entsprechende richtungsunabhängige
+Dual-Band-Antenne eingesetzt.
+
+Da die im Richtdiagramm angegebenen Werte gemessen wurden (die
+Messstandardabweichung lag bei Betrachtung in Dezibel bei 0.45), wurde zur
+Reduktion der Messungenauigkeit gegenüberliegende Messungen gemittelt und für
+beide Seiten verwendet, wodurch eine Punktsymmetrie dieses Diagramms zustande
+kommt. Vorher fand eine Verifikation statt, dass die seitenabhängigen
+Unterschiede unterhalb der Messgenauigkeit liegen.
+
+Durch direkte Messung der Ausgangsleistung der Sender wurde die insgesamt
+ausgestrahlte Leistung bestimmt. Da die verwendeten Antennen eine
+vernachlässigbare Abweichung von perfekter Abstrahleffizienz haben, lässt sich
+zusammen aus dem Richtdiagramm das EIRP bestimmen.
+
+\begin{figure}[pbt]
+  \centering
+  \begin{tikzpicture}[]
+    \begin{polaraxis}[scale=2.25,
+      xticklabel=$\pgfmathprintnumber{\tick}^\circ$,
+      yticklabel=$\pgfmathprintnumber{\tick}\,\text{dB}$,
+      xtick={0,30,...,330},
+      ytick={-30,-20,...,0},
+      ymin=-31, ymax=4,
+      y coord trafo/.code=\pgfmathparse{65+#1},
+      rotate=-90,
+      y coord inv trafo/.code=\pgfmathparse{#1-65},
+      x dir=reverse,
+      xticklabel style={anchor=-\tick-90},
+      yticklabel style={anchor=east},
+      % y axis line style={yshift=-4.75cm},
+      % ytick style={yshift=-4.75cm}
+      ]
+      \addplot[color=red] table {
+        0 0.00
+        10 -3.50
+        20 -3.50
+        30 -9.50
+        40 -8.50
+        50 -16.50
+        60 -15.50
+        70 -14.50
+        80 -18.50
+        90 -29.50
+        100 -29.50
+        110 -17.50
+        120 -13.50
+        130 -10.50
+        140 -6.50
+        150 -4.50
+        160 -1.50
+        170 -1.50
+        180 -0.50
+        190 -3.50
+        200 -3.50
+        210 -9.50
+        220 -8.50
+        230 -16.50
+        240 -15.50
+        250 -14.50
+        260 -18.50
+        270 -29.50
+        280 -29.50
+        290 -17.50
+        300 -13.50
+        310 -10.50
+        320 -6.50
+        330 -4.50
+        340 -1.50
+        350 -1.50
+        360 0
+      };
+      \addplot[color=blue] table {
+        0 0
+        10 -1.00
+        20 -3.00
+        30 -9.00
+        40 -13.00
+        50 -17.00
+        60 -14.00
+        70 -12.00
+        80 -12.00
+        90 -14.00
+        100 -21.00
+        110 -13.00
+        120 -16.00
+        130 -19.00
+        140 -13.00
+        150 -9.00
+        160 -5.00
+        170 -1.00
+        180 0.00
+        190 -1.00
+        200 -3.00
+        210 -9.00
+        220 -13.00
+        230 -17.00
+        240 -14.00
+        250 -12.00
+        260 -12.00
+        270 -14.00
+        280 -21.00
+        290 -13.00
+        300 -16.00
+        310 -19.00
+        320 -13.00
+        330 -9.00
+        340 -5.00
+        350 -1.00
+        360 0.00
+      };
+      \addlegendentry{\lowf}
+      \addlegendentry{\highf}
+    \end{polaraxis}
+  \end{tikzpicture}
+  \caption{Richtdiagramme bei \lowf{} und \highf. Die Winkelangaben beziehen
+    sich auf die am Gerät angebrachte Winkelmarkierungen.}
+  \label{fig:richt}
+\end{figure}
+
+Bei Vollaussteuerung in Hauptstrahlrichtung eines
+WLAN-Geräts mit einer äquivalenten isotropen Strahlungsleistung (\gls{eirp}) von
+\SI{22.5}{\decibel\milli{}} bei \lowf{} und \SI{10.0}{\decibel\milli{}} bei
+\highf pro Seite.
+
+Damit liegen wir pro Seite bei \SI{2.25}{\decibel} oberhalb der nominell
+zulässigen Abstrahlleistung von \SI{20}{\decibel\milli{}} im
+\SI{2.4}{\giga\hertz}-ISM-Band. Im \SI{5}{\giga\hertz}-Band sind die maximal
+zulässigen Leistungen wesentlich höher
+($\SI{1}{\watt}=\SI{30}{\decibel\milli{}}$), das ist allerdings der höheren
+Freiraumdämpfung geschuldet.
+
+Die empfangene Leistung bei einer Frequenz nimmt mit den Quadraten des Abstands
+und der Frequenz ab. Die Freiraumdämpfung  $a$ bei der Frequenz $f$ im Abstand $r$ ist 
+
+\begin{align}
+  a_{\text{Freiraum}} &= \left( \frac{4\pi}{c}\right)^2\cdot r^2f^2\text{,} \label{eq:fspl}
+      \intertext{
+      Für die beiden betrachteten Frequenzen beträgt diese Dämpfung in Dezibel:
+      }
+  a_{\lowf} &= \left( \num{40.23} + 20\log_{10} r_{[\text{Meter}]}\right)\si{\decibel{}}\label{eq:fspl24}\\
+  a_{\highf} &= \left( \num{47.72} + 20\log_{10} r_{[\text{Meter}]}\right)\si{\decibel{}}\label{eq:fspl58}\\
+\end{align}
+
+wobei $c\approx\SI{3e8}{\meter\per\second}$ die Licht- bzw.
+Wellengeschwindigkeit ist, und gibt das Verhältnis empfangener Leistung zur gesendeten an.
+
+\section{Leistungsdichten in festen Abstand}
+
+\begin{figure}[bt]
+  \centering
+
+  \begin{tikzpicture}[x=3cm,y=-3cm]
+    \node (point) at (0,0) {p};
+    \node (rx) at (1,0) {RX};
+    \node[] (tx) at (0,2) {TX};
+    
+    \node[anchor=north] at (0,2.1) {Zentrum der Sendeantenne};
+    \node[anchor=east] at (-0.1,0) {\parbox{10em}{Lotpunkt auf Gerade rechtwinklig zur Geräteachse}\;};
+
+    \draw[thick] (tx) -- node[right, midway]{$r$} (rx);
+    \draw[->] (point) -- node[above] {$\Delta x$} (rx);
+    \draw[] (tx) -- node[left] {$\Delta y=\SI{2}{\meter}$} (point);
+  \end{tikzpicture}
+  \caption{Geometrie des Aufbaus bei Platzierung der Bienenstöcke auf einer zur
+    Geräteachse rechtwinkligen Linie im Abstand von \SI{2}{\meter}\label{fig:geo}}
+\end{figure}
+
+Aus der Geometrie des Problems (vergleiche \autoref{fig:geo}) ergibt sich ein
+quadratischer Abstand
+\begin{align}
+  r^2=(\Delta y)^2+(\Delta x)^2\text.\label{eq:r}
+\end{align}
+
+Zum Bestimmen der relativen Leistungsdichte an einem beliebigen Punkt relativ
+zum Mittelpunkt der Antenne muss nun folgendes Verfahren eingesetzt werden:
+\begin{enumerate}
+\item Messung oder Berechnung des Abstands $r$ gemäß \autoref{eq:r},
+\item Bestimmen der Freiraumdämpfung in Dezibel mittels Einsetzen von $r$ in
+  \autoref{eq:fspl}
+\item Bestimmen der relativen Richtungsdämpfung in Dezibel aus dem Richtdiagramm
+  \autoref{fig:richt} (Gegebenenfalls Berechnung des Winkels mittels
+  $\alpha=\arctan\frac{\Delta x}{\Delta y}$)
+\item Addition dieser Dämpfungen in Dezibel
+\end{enumerate}
+
+\paragraph{Beispiel} Bei \lowf{} ergibt sich im Abstand von \SI{2}{\meter}
+direkt vor der Antenne (Punkt \glqq p\grqq{} in \autoref{fig:geo}) eine Dämpfung
+von $(\num{40.23}+3)\,\si{\decibel}$ (da $\log_{10}(2) \approx 0.3$).\\
+Bewegt man sich zwei Meter nach rechts (Punkt \grqq RX\glqq{} bei $\Delta
+x=\SI{2}{\meter}$), wird $\alpha=\SI{45}{\degree}$.\\
+Diese Richtung ist um etwa \SI{-12}{\decibel} gedämpft.\\
+Gleichzeitig ist der Abstand jetzt $r=\sqrt8\,\si{m}$, und
+$20\log_{10}\left(\sqrt8\right)\approx 9$, so dass sich insgesamt eine Dämpfung
+von $(\num{40.23}+9)\si{\decibel}$ ergibt.\\
+Relativ zum Punkt \glqq p\grqq{} sind das \SI{18}{\decibel} mehr, was einem
+Faktor von
+$10^{\frac{18}{10}}\approx 63$ weniger entspricht.
+
+\paragraph{Beispiel 2} Bei \highf{} im Abstand von \SI{2}{\meter} direkt vor der
+Antenne herrscht eine Dämpfung von $(\num{47.72}+3)\,\si{\decibel}$. Geht man vier
+Meter linkswärts ($\Delta x=-\SI{4}{\meter}$), wird
+$\alpha=\SI{-63}{\degree}\equiv\SI{297}{\degree}$, was laut Richtdiagramm um ca.
+\SI{-19}{\decibel} gedämpft ist. Der Abstand beträgt nun $r=\sqrt{20}\,\si{m}$, und
+$20\log_{10}\left(\sqrt{20}\right)\approx 13$, so dass sich insgesamt eine
+Dämpfung relativ zum Punkt \glqq p\grqq{} von \SI{22}{\decibel} ergibt, was
+einem Faktor von $159$ weniger entspricht.
+
+Zu beachten ist, dass durch den logarithmischen Eingang des Abstands relativ
+kleine Änderungen am $\Delta x$ kleine Auswirkungen haben; einen Bienenstock 10
+oder 30\,\si{\centi\meter} von der Achse zu verrücken, um zwei Bienenstöcke in
+die Hauptkeule zu bringen, ist also unkritisch.
+
+\chapter{Bedienungsanleitung}
+\section{Aufbau \& Inbetriebnahme}
+
+Nach Verbindung der Stromversorgung und Einstecken der USB-Kabel muss der Laptop
+nur aufgeklappt und eingeschaltet werden. Der Startvorgang ist vollautomatisch.
+
+Der Rechner fährt hierbei hoch, lädt die nötige Firmware auf die beiden USRPs,
+die sich unterhalb des Laptops befinden, und startet das Sendeprogramm. Dies
+kann bis zu \SI{5}{\minute} dauern!
+
+Sobald dieses läuft wird fortwährend protokolliert, mit welcher Ausgangsdämpfung
+gesendet wurde.
+\section{Start der Bestrahlung}
+
+Zunächst ist die minimal Sendeverstärkung von \SI{0}{\decibel} eingestellt, was
+relativ zur maximalen Verstärkung von \SI{90}{\decibel} einer Dämpfung von einer
+Milliarde entspricht -- effektiv ist die Strahlungsquelle also noch nicht aktiv.
+
+Im Drop-Down-Menu \texttt{Output Power} kann eine höhere Verstärkung gewählt
+werden. Im Normalbetrieb wird die volle Sendeverstärkung von \SI{90}{\decibel}
+am meisten Sinn ergeben. Mit dieser wurden die im vorhergehenden Kapitel
+angegebenen Leistungen gemessen.
+
+Der \texttt{Duty Cycle} gibt an, zu wie vielen Prozenten der Zeit WLAN-Pakete
+gesendet werden. Die Zeit wird hierfür in Perioden der Länge
+\texttt{Period}\,\si{\milli\second} eingeteilt, von denen die ersten
+\texttt{Duty Cycle} \% mit WLAN-Paketen (die sehr viel kürzer sind) belegt wird,
+und die letzten (100 - \texttt{Duty Cycle}) \% nicht gesendet wird.
+
+So lassen sich unterschiedlich ausgelastete WLAN-Netze simulieren.
+
+\section{Abruf des Bestrahlungsprotokolls}
+
+Auf dem Laptop wird eine Textdatei mit kommaseparierten Werten (CSV) pro
+Sendeband (also separat für \lowf{} und \highf) angelegt. Diese Dateien finden
+sich im Ordner \texttt{/car/log/beefi} und tragen den Namen
+\texttt{beefi\_log\_}Zeitstempel in Sekunden\texttt{.csv}.
+
+Am elegantesten lässt sich per Netzwerk auf diese Dateien zugreifen.
+
+Verbinden Sie dazu den Laptop mit einem Netzwerk, in dem ein DHCP-Server läuft
+(also zum Beispiel ein Heimrouter, der IP-Adressen vergibt). Nach kurzer Zeit
+sollte in der Fußzeile der Anzeige eine grüne Zahlenreihe (IP-Adresse), nach dem
+Muster {\color{green}{\texttt{000.000.000.000}}} (IPv4) und/oder
+{\color{green}{\texttt{2a00:1398:4:5e01:529d:4b8:5928:86fc}}}. Notieren Sie sich
+diese Nummer (oder zumindest eine davon). Diese Adresse kann sich bei jedem
+Neuverbinden mit dem Netzwerk ändern.
+
+Sie können als Nutzer \texttt{beefi} mit dem Passwort \texttt{VeT8k12} auf diesen
+Rechner zugreifen per SSH. Über das SCP-Protokoll können Dateien ausgetauscht
+werden. Unter Windows und Mac OS X erfüllen verschiedene Programme die Funktion
+eines SCP-Clients. \href{https://filezilla-project.org}{FileZilla} ist im
+deutschen Sprachraum sehr beliebt. Sie können sich mit dem Laptop verbinden,
+indem Sie auf Ihrem Rechner im selben Netzwerk Filezilla starten, bei
+\texttt{Host:} die oben notierte IP-Adresse eingeben. Navigieren Sie auf der
+\texttt{Remote Site} nach \texttt{/var/log/beefi/} und ziehen Sie die
+Logdateien, die relevant sind, auf Ihren Rechner.
+
+Die Dateien sind in Pandas, LibreOffice Calc, Google Sheets oder Microsoft Excel
+importierbar. Wählen Sie hierbei als Feldtrenner \texttt{;} und, falls gefragt,
+als Zeilenumbruch \emph{Unix}.
+
+\section{Fernwartung}
+
+Sobald der Laptop mit einem Netzwerk verbunden wird (zum Beispiel wie oben, oder
+durch Verbindung mit einem Handy im USB-Tethering-Modus), versucht er, eine
+Verbindung mit einem VPN aufzubauen. Bisher sind außer dem Laptop keinerlei
+weitere Teilnehmer in diesem VPN. Sollte allerdings eine Fernwartung nötig
+werden, kann ich mich mit diesem VPN verbinden, um dann per SSH auf den Rechner
+zuzugreifen.
+
+\end{document}
